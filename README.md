@@ -12,3 +12,4 @@ root@557554973fa5:/# cat /etc/hosts
 0.0.0.0 localhost
 ```
 
+$Env:RUST_BACKTRACE=1
