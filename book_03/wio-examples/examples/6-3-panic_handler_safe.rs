@@ -51,8 +51,14 @@ fn main() -> ! {
     );
 
     // TODO: グローバル変数に格納されているNoneを安全にSomeで上書きする
+    interrupt::free(|cs| UART.borrow(cs).replace(Some(serial)));
 
     // TODO: 安全にグローバル変数を使ってhello worldを出力する
+    interrupt::free(|cs| {
+        if let Some(ref mut serial) = UART.borrow(cs).borrow_mut().deref_mut() {
+            writeln!(serial, "hello world").unwrap();
+        }
+    });
 
     let none: Option<usize> = None;
     none.unwrap();
@@ -63,6 +69,10 @@ fn main() -> ! {
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     // TODO: 安全にグローバル変数を使ってメッセージを出力する
-
+    interrupt::free(|cs| {
+        if let Some(ref mut serial) = UART.borrow(cs).borrow_mut().deref_mut() {
+            let _ = writeln!(serial, "panic: {}", info);
+        }
+    });
     loop {}
 }

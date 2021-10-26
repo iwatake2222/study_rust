@@ -45,12 +45,22 @@ fn main() -> ! {
         &mut sets.port,
     );
 
-    // TODO: グローバル変数に格納されているNoneをSomeで上書きする
+    unsafe {
+        UART = Some(serial);
+        writeln!(UART.as_mut().unwrap(), "Hello").unwrap();
+    }
 
-    // TODO: わざとNoneをunwrap()してパニックを発生させる
+    panic!("do panic");
 
     loop {}
 }
 
-// TODO: パニックハンドラを実装する
 
+
+#[panic_handler]
+fn panic(info: &PanicInfo) -> ! {
+    unsafe {
+        writeln!(UART.as_mut().unwrap(), "panic: {}", info).ok();
+    }
+    loop {}
+}
