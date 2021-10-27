@@ -1,3 +1,5 @@
+#![no_std]
+
 use embedded_graphics::{prelude::*, pixelcolor::Rgb565, primitives::*, style::*, fonts::*, image::{Image, ImageRawLE},
     egcircle, egrectangle, egtext, primitive_style, text_style};
 
