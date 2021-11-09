@@ -1,178 +1,374 @@
 fn main() {
-    println!("\n=== i32: Memory allocation ===");
-    let mut val0: i32 = 12345678;
-    let val0_ptr: *mut i32 = &mut val0;
-    println!("val0 = {}, val0_ptr = {:?}", val0, val0_ptr);
-    println!("sizeof(val0) = {}, sizeof(val0_ptr) = {}", std::mem::size_of_val(&val0), std::mem::size_of_val(&val0_ptr));
-
-    println!("\n=== Pointer access ===");
+    println!("\n####################\n# Pointer\n####################");
+    let val: i32 = 0x12345678;
+    let val_ptr: *const i32 = &val;
+    println!("val = 0x{:08X}, val_ptr = {:?}", val, val_ptr);
+    println!("sizeof(val) = {}, sizeof(val_ptr) = {}", std::mem::size_of_val(&val), std::mem::size_of_val(&val_ptr));
+    
+    println!("\n### Pointer Access ###");
+    let mut val: i32 = 0x12345678;
+    let val_ptr: *mut i32 = &mut val;
+    println!("val = 0x{:08X}, val_ptr = {:?}", val, val_ptr);
     unsafe {
-        *val0_ptr += 1;
-        println!("val0 + 1 = {}", val0);
-        println!("val0_ptr.add(1) = {:?}", val0_ptr.add(1));
-        // println!("val0_ptr + 1 = {:?}", val0_ptr + (1 as *mut i32));
+        *val_ptr += 1;
+        println!("*val_ptr + 1 = 0x{:08X}", val);
+        println!("val_ptr.add(1) = {:?}", val_ptr.add(1));
+        // println!("val_ptr + 1 = {:?}", val_ptr + (1 as *mut i32));  // Error:  cannot add `*mut i32` to `*mut i32`
     }
 
-    println!("\n=== Pointer cast ===");
-    // unsafe {
-    //     let null_ptr = 0x0000_0000_0000_0000 as *mut u32;
-    //     *null_ptr = 0xdeadbeef;
-    // }
-    let mut val0: i32 = 0x12345678;
-    let val0_ptr: *mut i32 = &mut val0;
-    let val0_u8_ptr: *mut u8 = val0_ptr as *mut u8;
-    println!("val0 = 0x{:08X}, val0_ptr = {:?}, val0_u8_ptr = {:?}", val0, val0_ptr, val0_u8_ptr);
+    println!("\n### Pointer Cast ###");
+    let mut val: i32 = 0x12345678;
+    let val_ptr: *mut i32 = &mut val;
+    let val_u8_ptr: *mut u8 = val_ptr as *mut u8;
+    println!("val = 0x{:08X}, val_ptr = {:?}, val_u8_ptr = {:?}", val, val_ptr, val_u8_ptr);
     unsafe {
         for i in 0..4 {
-            println!("val0_u8_ptr.add({}) = {:?}, val = 0x{:02X}", i, val0_u8_ptr.add(i), *val0_u8_ptr.add(i));
+            println!("val_u8_ptr.add({}) = {:?}, val = 0x{:02X}", i, val_u8_ptr.add(i), *val_u8_ptr.add(i));
         }
     }
 
-    println!("\n=== i32: Reference ===");
-    let val0: i32 = 12345678;
-    let val0_ptr: *const i32 = &val0;
-    let val0_ref= &val0;
-    let val0_ref_ptr: *const &i32 = &val0_ref;
+    //// Exit: STATUS_ACCESS_VIOLATION
+    // println!("\n### Pointer Cast from Number ###");
+    // unsafe {
+    //     /* immutable */
+    //     let ptr: *const u32 = 0x0000_0000_0000_0000 as *const u32;
+    //     println!("{}", *ptr);
+
+    //     /* mutable */
+    //     let ptr: *mut u32 = 0x0000_0000_0000_0000 as *mut u32;
+    //     *ptr = 0xdeadbeef;
+    // }
+
+    println!("\n####################\n# i32\n####################");
+    println!("\n### i32: Memory Allocation ###");
+    let val: i32 = 0x12345678;
+    let val_ptr: *const i32 = &val;
+    let val_ref: &i32 = &val;
+    let val_ref_ptr: *const &i32 = &val_ref;
     
-    println!("val0 = {:?}, val0_ptr = {:?}, val0_ref = {:?}, val0_ref_ptr = {:?}", val0, val0_ptr, val0_ref, val0_ref_ptr);
-    println!("sizeof(val0) = {}, sizeof(val0_ptr) = {}, sizeof(val0_ref) = {}, sizeof(val0_ref_ptr) = {}",
-        std::mem::size_of_val(&val0), std::mem::size_of_val(&val0_ptr), std::mem::size_of_val(&val0_ref), std::mem::size_of_val(&val0_ref_ptr));
+    println!("val = 0x{:08X}, val_ptr = {:?}, val_ref = 0x{:08X}, val_ref_ptr = {:?}", val, val_ptr, val_ref, val_ref_ptr);
+    println!("sizeof(val) = {}, sizeof(val_ptr) = {}, sizeof(val_ref) = {}, sizeof(val_ref_ptr) = {}",
+        std::mem::size_of_val(&val), std::mem::size_of_val(&val_ptr), std::mem::size_of_val(&val_ref), std::mem::size_of_val(&val_ref_ptr));
 
     unsafe {
-        println!("*val0_ptr = {:?}", *val0_ptr);
-        println!("val0_ref() = {}, *val0_ref() = {}", val0_ref, *val0_ref); // automatically derefeered
-        println!("val0_ref_ptr() = {:?}, *val0_ref_ptr() = {:?}", val0_ref_ptr, *val0_ref_ptr); // automatically derefeered
-        let val0_ref_ptr = val0_ref_ptr as *const usize;
-        println!("val0_ref_ptr() = {:?}, *val0_ref_ptr() = 0x{:016X}", val0_ref_ptr, *val0_ref_ptr);
+        println!("val_ptr = 0x{:016X}, *val_ptr = 0x{:016X}", val_ptr as usize, *val_ptr);
+        println!("val_ref = 0x{:016X}, *val_ref = 0x{:016X}", val_ref, *val_ref); // get same result
+        println!("val_ref_ptr = {:?}, *val_ref_ptr = {:?}", val_ref_ptr, *val_ref_ptr); // *val_ref_ptr becomes val (not val_ref = val_ptr)
+        let val_ref_ptr = val_ref_ptr as *const usize;
+        println!("val_ref_ptr = {:?}, *val_ref_ptr = 0x{:016X}", val_ref_ptr, *val_ref_ptr);
     }
 
 
-    println!("\n=== i32: Move ===");
-    println!("val0 = {}, val0_ptr = {:?}", val0, val0_ptr);
+    println!("\n### i32: Move ###");
+    let val: i32 = 0x12345678;
+    let val_ptr: *const i32 = &val;
+    println!("Before Move");
+    println!("val = 0x{:08X}, val_ptr = {:?}", val, val_ptr);
 
-    let val1 = val0;
-    let val1_ptr: *const _ = &val1;
-    println!("val0 = {}, val0_ptr = {:?}", val0, val0_ptr);
-    println!("val1 = {}, val1_ptr = {:?}", val1, val1_ptr);
+    let val_move = val;
+    let val_move_ptr: *const _ = &val_move;
+    println!("After Move");
+    println!("val = 0x{:08X}, val_ptr = {:?}", val, val_ptr);
+    println!("val_move = 0x{:08X}, val_move_ptr = {:?}", val_move, val_move_ptr);
 
 
-    println!("\n=== vec: Memory allocation ===");
-    let val0: Vec<i32> = vec![0x10, 0x20, 0x30];
-    let val0_ptr: *const _ = &val0;
-    println!("val0 = {:?}, val0_ptr = {:?}, val0.as_ptr() = {:?}", val0, val0_ptr, val0.as_ptr());
-    println!("sizeof(val0) = {}", std::mem::size_of_val(&val0));
+
+    println!("\n####################\n# array\n####################");
+    println!("\n### array: Memory Allocation ###");
+    let val: [i32; 5] = [0x10, 0x20, 0x30, 0x40, 0x50];
+    let val_ptr: *const _ = &val;
+    let val_ref: _ = &val;
+    let val_ref_ptr: *const _ = &val_ref;
+    let val_as_ptr: *const _ = val.as_ptr();
+    println!("val = {:?}, val_ptr = {:?}, val_ref = {:?}, val_ref_ptr = {:?}, val_as_ptr = {:?}", val, val_ptr, val_ref, val_ref_ptr, val_as_ptr);
+    println!("sizeof(val) = {}, sizeof(val_ptr) = {}, sizeof(val_ref) = {}, sizeof(val_ref_ptr) = {}",
+        std::mem::size_of_val(&val), std::mem::size_of_val(&val_ptr), std::mem::size_of_val(&val_ref), std::mem::size_of_val(&val_ref_ptr));
     unsafe {
-        println!("== Display val0_ptr ==");
-        let val0_u32_ptr = val0_ptr as *const u32;
-        for i in 0..std::mem::size_of_val(&val0) / std::mem::size_of::<u32>() {
-            println!("val0_u8_ptr.add({}) = {:?}, val = 0x{:08X}", i, val0_u32_ptr.add(i), *val0_u32_ptr.add(i));
+        println!("== Display val_ptr ==");
+        let val_u32_ptr = val_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val) / std::mem::size_of::<u32>() {
+            println!("val_u32_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_u32_ptr.add(i), *val_u32_ptr.add(i));
         }
-        println!("== Display val0.as_ptr() ==");
-        let val0_as_ptr = val0.as_ptr();
-        for i in 0..3 {
-            println!("val0_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val0_as_ptr.add(i), *val0_as_ptr.add(i));
+        println!("== Display val.as_ptr() ==");
+        let val_as_ptr = val.as_ptr();
+        for i in 0..val.len() {
+            println!("val_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_as_ptr.add(i), *val_as_ptr.add(i));
+        }
+
+        println!("==Display reference==");
+        let val_ref_ptr = val_ref_ptr as *const usize;
+        println!("val_ref_ptr = {:?}, *val_ref_ptr = 0x{:016X}", val_ref_ptr, *val_ref_ptr);
+    }
+
+    println!("\n### array: Move ###");
+    println!("Before Move");
+    let val: [i32; 5] = [0x10, 0x20, 0x30, 0x40, 0x50];
+    let val_ptr: *const _ = &val;
+    println!("val = {:?}, val_ptr = {:?}, val.as_ptr() = {:?}", val, val_ptr, val.as_ptr());
+
+    println!("After Move");
+    let val_move = val;
+    let val_move_ptr: *const _ = &val_move;
+    println!("val = {:?}, val_ptr = {:?}, val.as_ptr() = {:?}", val, val_ptr, val.as_ptr());
+    println!("val_move = {:?}, val_move_ptr = {:?}, val_move.as_ptr() = {:?}", val_move, val_move_ptr, val_move.as_ptr());
+    println!("sizeof(val) = {}, sizeof(val_move) = {}", std::mem::size_of_val(&val), std::mem::size_of_val(&val_move));
+
+
+
+    println!("\n####################\n# vec\n####################");
+    println!("\n### vec: Memory Allocation ###");
+    let val: Vec<i32> = vec![0x10, 0x20, 0x30, 0x40, 0x50];
+    let val_ptr: *const Vec<i32> = &val;
+    let val_ref: &Vec<i32> = &val;
+    let val_ref_ptr: *const &Vec<i32> = &val_ref;
+    let val_as_ptr: *const i32 = val.as_ptr();
+    println!("val = {:?}, val_ptr = {:?}, val_ref = {:?}, val_ref_ptr = {:?}, val_as_ptr = {:?}", val, val_ptr, val_ref, val_ref_ptr, val_as_ptr);
+    println!("sizeof(val) = {}, sizeof(val_ptr) = {}, sizeof(val_ref) = {}, sizeof(val_ref_ptr) = {}",
+        std::mem::size_of_val(&val), std::mem::size_of_val(&val_ptr), std::mem::size_of_val(&val_ref), std::mem::size_of_val(&val_ref_ptr));
+    unsafe {
+        println!("== Display val_ptr ==");
+        let val_u32_ptr = val_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val) / std::mem::size_of::<u32>() {
+            println!("val_u32_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_u32_ptr.add(i), *val_u32_ptr.add(i));
+        }
+        println!("== Display val.as_ptr() ==");
+        let val_as_ptr = val.as_ptr();
+        for i in 0..val.len() {
+            println!("val_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_as_ptr.add(i), *val_as_ptr.add(i));
+        }
+
+        println!("==Display reference==");
+        let val_ref_ptr = val_ref_ptr as *const usize;
+        println!("val_ref_ptr = {:?}, *val_ref_ptr = 0x{:016X}", val_ref_ptr, *val_ref_ptr);
+    }
+
+    println!("\n### vec: Move ###");
+    println!("Before Move");
+    let val: Vec<i32> = vec![0x10, 0x20, 0x30, 0x40, 0x50];
+    let val_ptr: *const Vec<i32> = &val;
+    println!("val = {:?}, val_ptr = {:?}, val.as_ptr() = {:?}", val, val_ptr, val.as_ptr());
+
+    println!("After Move");
+    let val_move = val;
+    let val_move_ptr: *const _ = &val_move;
+    // println!("val = {:?}, val_ptr = {:?}, val.as_ptr() = {:?}", val, val_ptr, val.as_ptr()); // Error: borrow of moved value
+    println!("val_move = {:?}, val_move_ptr = {:?}, val_move.as_ptr() = {:?}", val_move, val_move_ptr, val_move.as_ptr());
+    println!("sizeof(val_move) = {}, ", std::mem::size_of_val(&val_move));
+
+    unsafe {
+        println!("== Display val_ptr ==");
+        let val_u32_ptr = val_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val_move) / std::mem::size_of::<u32>() {
+            println!("val_u32_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_u32_ptr.add(i), *val_u32_ptr.add(i));
+        }
+
+        // // === Error: borrow of moved value ===
+        // println!("== Display val.as_ptr() ==");
+        // let val_as_ptr = val.as_ptr();
+        // for i in 0..val_move.len() {
+        //     println!("val_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_as_ptr.add(i), *val_as_ptr.add(i));
+        // }
+
+        println!("== Display val_move_ptr ==");
+        let val_move_u32_ptr = val_move_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val_move) / std::mem::size_of::<u32>() {
+            println!("val_move_u32_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_move_u32_ptr.add(i), *val_move_u32_ptr.add(i));
+        }
+        println!("== Display val_move.as_ptr() ==");
+        let val_move_as_ptr = val_move.as_ptr();
+        for i in 0..val_move.len() {
+            println!("val_move_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_move_as_ptr.add(i), *val_move_as_ptr.add(i));
         }
     }
 
-    println!("\n=== vec: Move ===");
-    println!("val0 = {:?}, val0_ptr = {:?}, val0.as_ptr() = {:?}", val0, val0_ptr, val0.as_ptr());
-    let val1 = val0;
-    let val1_ptr: *const _ = &val1;
-    // println!("val0 = {:?}, val0_ptr = {:?}, val0.as_ptr() = {:?}", val0, val0_ptr, val0.as_ptr());
-    println!("val1 = {:?}, val1_ptr = {:?}, val1.as_ptr() = {:?}", val1, val1_ptr, val1.as_ptr());
-    println!("sizeof(val1) = {}, ", std::mem::size_of_val(&val1));
 
-    println!("\n=== vec: Reference ===");
-    let val0: Vec<i32> = vec![0x10, 0x20, 0x30];
-    let val1 = &val0;
-    let val1_ptr: *const _ = &val1;
-    println!("val0 = {:?}, val0_ptr = {:?}, val0.as_ptr() = {:?}", val0, val0_ptr, val0.as_ptr());
-    println!("val1 = {:?}, val1_ptr = {:?}, val1.as_ptr() = {:?}", val1, val1_ptr, val1.as_ptr());
-    println!("sizeof(val1) = {}, ", std::mem::size_of_val(&val1));
-
-
-    println!("\n=== &str: Memory allocation ===");
-    let val0: &str = "123";
-    let val0_ptr: *const _ = &val0;
-    println!("val0 = {:?}, val0_ptr = {:?}, val0.as_ptr() = {:?}", val0, val0_ptr, val0.as_ptr());
-    println!("sizeof(val0) = {}", std::mem::size_of_val(&val0));
+    println!("\n####################\n# &str\n####################");
+    println!("\n### &str: Memory Allocation ###");
+    let val: &str = "123";
+    let val_ptr: *const &str = &val;
+    let val_ref: &&str = &val;
+    let val_ref_ptr: *const &&str = &val_ref;
+    let val_as_ptr: *const u8 = val.as_ptr();
+    println!("val = {:?}, val_ptr = {:?}, val_ref = {:?}, val_ref_ptr = {:?}, val_as_ptr = {:?}", val, val_ptr, val_ref, val_ref_ptr, val_as_ptr);
+    println!("sizeof(val) = {}, sizeof(val_ptr) = {}, sizeof(val_ref) = {}, sizeof(val_ref_ptr) = {}",
+        std::mem::size_of_val(&val), std::mem::size_of_val(&val_ptr), std::mem::size_of_val(&val_ref), std::mem::size_of_val(&val_ref_ptr));
     unsafe {
-        println!("== Display val0_ptr ==");
-        let val0_u32_ptr = val0_ptr as *const u32;
-        for i in 0..std::mem::size_of_val(&val0) / std::mem::size_of::<u32>() {
-            println!("val0_u8_ptr.add({}) = {:?}, val = 0x{:08X}", i, val0_u32_ptr.add(i), *val0_u32_ptr.add(i));
+        println!("== Display val_ptr ==");
+        let val_u32_ptr = val_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val) / std::mem::size_of::<u32>() {
+            println!("val_u32_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_u32_ptr.add(i), *val_u32_ptr.add(i));
         }
-        println!("== Display val0.as_ptr() ==");
-        let val0_as_ptr = val0.as_ptr();
-        for i in 0..3 {
-            println!("val0_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val0_as_ptr.add(i), *val0_as_ptr.add(i));
+        println!("== Display val.as_ptr() ==");
+        let val_as_ptr = val.as_ptr();
+        for i in 0..val.len() {
+            println!("val_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_as_ptr.add(i), *val_as_ptr.add(i));
+        }
+
+        println!("==Display reference==");
+        let val_ref_ptr = val_ref_ptr as *const usize;
+        println!("val_ref_ptr = {:?}, *val_ref_ptr = 0x{:016X}", val_ref_ptr, *val_ref_ptr);
+    }
+
+    println!("\n### &str: Move ###");
+    println!("Before Move");
+    let val: &str = "123";
+    let val_ptr: *const &str = &val;
+    println!("val = {:?}, val_ptr = {:?}, val.as_ptr() = {:?}", val, val_ptr, val.as_ptr());
+
+    println!("After Move");
+    let val_move = val;
+    let val_move_ptr: *const _ = &val_move;
+    // println!("val = {:?}, val_ptr = {:?}, val.as_ptr() = {:?}", val, val_ptr, val.as_ptr()); // Error: borrow of moved value
+    println!("val_move = {:?}, val_move_ptr = {:?}, val_move.as_ptr() = {:?}", val_move, val_move_ptr, val_move.as_ptr());
+    println!("sizeof(val_move) = {}, ", std::mem::size_of_val(&val_move));
+
+    unsafe {
+        println!("== Display val_ptr ==");
+        let val_u32_ptr = val_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val_move) / std::mem::size_of::<u32>() {
+            println!("val_u32_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_u32_ptr.add(i), *val_u32_ptr.add(i));
+        }
+
+        println!("== Display val.as_ptr() ==");
+        let val_as_ptr = val.as_ptr();
+        for i in 0..val_move.len() {
+            println!("val_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_as_ptr.add(i), *val_as_ptr.add(i));
+        }
+
+        println!("== Display val_move_ptr ==");
+        let val_move_u32_ptr = val_move_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val_move) / std::mem::size_of::<u32>() {
+            println!("val_move_u32_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_move_u32_ptr.add(i), *val_move_u32_ptr.add(i));
+        }
+        println!("== Display val_move.as_ptr() ==");
+        let val_move_as_ptr = val_move.as_ptr();
+        for i in 0..val_move.len() {
+            println!("val_move_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_move_as_ptr.add(i), *val_move_as_ptr.add(i));
         }
     }
 
-    println!("\n=== &str: Move ===");
-    println!("val0 = {:?}, val0_ptr = {:?}, val0.as_ptr() = {:?}", val0, val0_ptr, val0.as_ptr());
-    let val1 = val0;
-    let val1_ptr: *const _ = &val1;
-    println!("val0 = {:?}, val0_ptr = {:?}, val0.as_ptr() = {:?}", val0, val0_ptr, val0.as_ptr());
-    println!("val1 = {:?}, val1_ptr = {:?}, val1.as_ptr() = {:?}", val1, val1_ptr, val1.as_ptr());
 
-    println!("\n=== String: Memory allocation ===");
-    let val0: String = "123".to_string();
-    let val0_ptr: *const _ = &val0;
-    println!("val0 = {:?}, val0_ptr = {:?}, val0.as_ptr() = {:?}", val0, val0_ptr, val0.as_ptr());
-    println!("sizeof(val0) = {}", std::mem::size_of_val(&val0));
+
+    println!("\n####################\n# String\n####################");
+    println!("\n### String: Memory Allocation ###");
+    let val: String = "123".to_string();
+    let val_ptr: *const String = &val;
+    let val_ref: &String = &val;
+    let val_ref_ptr: *const &String = &val_ref;
+    let val_as_ptr: *const u8 = val.as_ptr();
+    println!("val = {:?}, val_ptr = {:?}, val_ref = {:?}, val_ref_ptr = {:?}, val_as_ptr = {:?}", val, val_ptr, val_ref, val_ref_ptr, val_as_ptr);
+    println!("sizeof(val) = {}, sizeof(val_ptr) = {}, sizeof(val_ref) = {}, sizeof(val_ref_ptr) = {}",
+        std::mem::size_of_val(&val), std::mem::size_of_val(&val_ptr), std::mem::size_of_val(&val_ref), std::mem::size_of_val(&val_ref_ptr));
     unsafe {
-        println!("== Display val0_ptr ==");
-        let val0_u32_ptr = val0_ptr as *const u32;
-        for i in 0..std::mem::size_of_val(&val0) / std::mem::size_of::<u32>() {
-            println!("val0_u8_ptr.add({}) = {:?}, val = 0x{:08X}", i, val0_u32_ptr.add(i), *val0_u32_ptr.add(i));
+        println!("== Display val_ptr ==");
+        let val_u32_ptr = val_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val) / std::mem::size_of::<u32>() {
+            println!("val_u32_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_u32_ptr.add(i), *val_u32_ptr.add(i));
         }
-        println!("== Display val0.as_ptr() ==");
-        let val0_as_ptr = val0.as_ptr();
-        for i in 0..3 {
-            println!("val0_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val0_as_ptr.add(i), *val0_as_ptr.add(i));
+        println!("== Display val.as_ptr() ==");
+        let val_as_ptr = val.as_ptr();
+        for i in 0..val.len() {
+            println!("val_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_as_ptr.add(i), *val_as_ptr.add(i));
+        }
+
+        println!("==Display reference==");
+        let val_ref_ptr = val_ref_ptr as *const usize;
+        println!("val_ref_ptr = {:?}, *val_ref_ptr = 0x{:016X}", val_ref_ptr, *val_ref_ptr);
+    }
+
+    println!("\n### String: Move ###");
+    println!("Before Move");
+    let val: String = "123".to_string();
+    let val_ptr: *const String = &val;
+    println!("val = {:?}, val_ptr = {:?}, val.as_ptr() = {:?}", val, val_ptr, val.as_ptr());
+
+    println!("After Move");
+    let val_move = val;
+    let val_move_ptr: *const _ = &val_move;
+    // println!("val = {:?}, val_ptr = {:?}, val.as_ptr() = {:?}", val, val_ptr, val.as_ptr()); // Error: borrow of moved value
+    println!("val_move = {:?}, val_move_ptr = {:?}, val_move.as_ptr() = {:?}", val_move, val_move_ptr, val_move.as_ptr());
+    println!("sizeof(val_move) = {}, ", std::mem::size_of_val(&val_move));
+
+    unsafe {
+        println!("== Display val_ptr ==");
+        let val_u32_ptr = val_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val_move) / std::mem::size_of::<u32>() {
+            println!("val_u32_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_u32_ptr.add(i), *val_u32_ptr.add(i));
+        }
+
+        // // === Error: borrow of moved value ===
+        // println!("== Display val.as_ptr() ==");
+        // let val_as_ptr = val.as_ptr();
+        // for i in 0..val_move.len() {
+        //     println!("val_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_as_ptr.add(i), *val_as_ptr.add(i));
+        // }
+
+        println!("== Display val_move_ptr ==");
+        let val_move_u32_ptr = val_move_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val_move) / std::mem::size_of::<u32>() {
+            println!("val_move_u32_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_move_u32_ptr.add(i), *val_move_u32_ptr.add(i));
+        }
+        println!("== Display val_move.as_ptr() ==");
+        let val_move_as_ptr = val_move.as_ptr();
+        for i in 0..val_move.len() {
+            println!("val_move_as_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_move_as_ptr.add(i), *val_move_as_ptr.add(i));
         }
     }
 
-    println!("\n=== String: Move ===");
-    println!("val0 = {:?}, val0_ptr = {:?}, val0.as_ptr() = {:?}", val0, val0_ptr, val0.as_ptr());
-    let val1 = val0;
-    let val1_ptr: *const _ = &val1;
-    // println!("val0 = {:?}, val0_ptr = {:?}, val0.as_ptr() = {:?}", val0, val0_ptr, val0.as_ptr());
-    println!("val1 = {:?}, val1_ptr = {:?}, val1.as_ptr() = {:?}", val1, val1_ptr, val1.as_ptr());
 
-    println!("\n=== struct: Memory allocation ===");
+
+
+    println!("\n####################\n# struct\n####################");
+
     #[derive(Debug)]
     struct Person {
         id: i32,
         age: i32,
         name: String,
     }
-    let val0 = Person{ id: 1, age: 2, name: "ABC".to_string() };
-    let val0_ptr: *const _ = &val0;
-    let val0_id_ptr: *const i32 = &val0.id;
-    let val0_age_ptr: *const i32 = &val0.age;
-    let val0_str_ptr: *const String = &val0.name;
-    println!("val0_ptr = {:?}, val0_id_ptr = {:?}, val0_age_ptr = {:?}, val0_str_ptr = {:?}, val0.name.as_ptr() = {:?}", val0_ptr, val0_id_ptr, val0_age_ptr, val0_str_ptr, val0.name.as_ptr());
-    println!("sizeof(val0) = {}", std::mem::size_of_val(&val0));
+
+    println!("\n### struct: Memory Allocation ###");
+    let val = Person{ id: 1, age: 2, name: "ABC".to_string() };
+    let val_ptr: *const _ = &val;
+    let val_id_ptr: *const i32 = &val.id;
+    let val_age_ptr: *const i32 = &val.age;
+    let val_str_ptr: *const String = &val.name;
+    println!("val_ptr = {:?}, val_id_ptr = {:?}, val_age_ptr = {:?}, val_str_ptr = {:?}, val.name.as_ptr() = {:?}", val_ptr, val_id_ptr, val_age_ptr, val_str_ptr, val.name.as_ptr());
+    println!("sizeof(val) = {}", std::mem::size_of_val(&val));
     unsafe {
-        println!("== Display val0_ptr ==");
-        let val0_u32_ptr = val0_ptr as *const u32;
-        for i in 0..std::mem::size_of_val(&val0) / std::mem::size_of::<u32>() {
-            println!("val0_u8_ptr.add({}) = {:?}, val = 0x{:08X}", i, val0_u32_ptr.add(i), *val0_u32_ptr.add(i));
+        println!("== Display val_ptr ==");
+        let val_u32_ptr = val_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val) / std::mem::size_of::<u32>() {
+            println!("val_u8_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_u32_ptr.add(i), *val_u32_ptr.add(i));
         }
     }
 
+    println!("\n### struct: Move ###");
+    println!("Before Move");
+    let val = Person{ id: 1, age: 2, name: "ABC".to_string() };
+    let val_ptr: *const Person = &val;
+    println!("val_ptr = {:?}, val_id_ptr = {:?}, val_age_ptr = {:?}, val_str_ptr = {:?}, val.name.as_ptr() = {:?}", val_ptr, val_id_ptr, val_age_ptr, val_str_ptr, val.name.as_ptr());
+    
+    println!("After Move");
+    let val_move = val;
+    let val_move_ptr: *const _ = &val_move;
+    let val_move_id_ptr: *const i32 = &val_move.id;
+    let val_move_age_ptr: *const i32 = &val_move.age;
+    let val_move_str_ptr: *const String = &val_move.name;
+    // println!("val_ptr = {:?}, val_id_ptr = {:?}, val_age_ptr = {:?}, val_str_ptr = {:?}, val.name.as_ptr() = {:?}", val_ptr, val_id_ptr, val_age_ptr, val_str_ptr, val.name.as_ptr());
+    println!("val_move_ptr = {:?}, val_move_id_ptr = {:?}, val_move_age_ptr = {:?}, val_move_str_ptr = {:?}, val_move.name.as_ptr() = {:?}", val_move_ptr, val_move_id_ptr, val_move_age_ptr, val_move_str_ptr, val_move.name.as_ptr());
 
-    println!("\n=== struct: Move ===");
-    println!("val0_ptr = {:?}, val0_id_ptr = {:?}, val0_age_ptr = {:?}, val0_str_ptr = {:?}, val0.name.as_ptr() = {:?}", val0_ptr, val0_id_ptr, val0_age_ptr, val0_str_ptr, val0.name.as_ptr());
-    let val1 = val0;
-    let val1_ptr: *const _ = &val1;
-    let val1_id_ptr: *const i32 = &val1.id;
-    let val1_age_ptr: *const i32 = &val1.age;
-    let val1_str_ptr: *const String = &val1.name;
-    // println!("val0_ptr = {:?}, val0_id_ptr = {:?}, val0_age_ptr = {:?}, val0_str_ptr = {:?}, val0.name.as_ptr() = {:?}", val0_ptr, val0_id_ptr, val0_age_ptr, val0_str_ptr, val0.name.as_ptr());
-    println!("val1_ptr = {:?}, val1_id_ptr = {:?}, val1_age_ptr = {:?}, val1_str_ptr = {:?}, val1.name.as_ptr() = {:?}", val1_ptr, val1_id_ptr, val1_age_ptr, val1_str_ptr, val1.name.as_ptr());
+    unsafe {
+        println!("== Display val_ptr ==");
+        let val_u32_ptr = val_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val_move) / std::mem::size_of::<u32>() {
+            println!("val_u32_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_u32_ptr.add(i), *val_u32_ptr.add(i));
+        }
 
-
+        println!("== Display val_move_ptr ==");
+        let val_move_u32_ptr = val_move_ptr as *const u32;
+        for i in 0..std::mem::size_of_val(&val_move) / std::mem::size_of::<u32>() {
+            println!("val_move_u32_ptr.add({}) = {:?}, val = 0x{:08X}", i, val_move_u32_ptr.add(i), *val_move_u32_ptr.add(i));
+        }
+    }
 }
