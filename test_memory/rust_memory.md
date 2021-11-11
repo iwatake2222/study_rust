@@ -1,8 +1,10 @@
-# Rustの変数がメモリ上でどのように配置されて、moveしたときにどのような挙動をするか
+Rustの変数がメモリ上でどのように配置され、"="したときにどのような挙動をするか
 
-- Rustの変数がメモリ上でどのように配置されて、moveしたときにどのような挙動をするかを調べました
-- 所有権とかRust的なことは置いといて、実際にデータがどのように扱われているかが分からないと気持ちが悪いという人向けの記事です。(主にC/C++プログラマ向け)。
-- 注意: 下記の64-bit環境で実行した結果を記載しています。実装依存な結果も含まれているかと思われます。
+# この記事について
+- Rustの変数がメモリ上でどのように配置されるかを調べました
+- `=` を行った場合、メモリ上でどのようにデータが動くかを調べました
+- 所有権とかRust的なことは置いといて、実際にデータがどこにあって、どのように扱われているかが分からないと気持ちが悪いという人向けの記事です。(主にC/C++プログラマ向け)
+- 注意: 下記の64-bit環境で実行した結果を記載しています。実装依存な結果も含まれているかと思われます
 
 ## 環境
 - Intel Core i7-6700
@@ -10,15 +12,18 @@
 - rustc 1.55.0
 
 ## まとめ
-- おおむねC/C++と同じ。本記事の範囲だと、参照と配列(array)が少し異なる
-- moveの際
-    - i32等の基本型、配列(array)はデータそのものがコピーされる
+- メモリ上の配置方法と変数の取り扱われ方は、おおむねC/C++と同じ。本記事の範囲だと、参照と配列(array)が少し異なる
+- `=` をした場合の挙動
+    - i32等の基本型、配列(array)はデータそのものがコピーされる (copyになる)
         - 構造体内に上記型のメンバがある場合も同じ
-        - なので、大きい配列のmoveは要注意
-    - vec、&str、Stringは管理情報はコピーされるが、データ実体(ヒープ領域上に確保される)はコピーされない
+        - なので、大きい配列や、メンバ数の多い構造体を`=` する場合には注意した方がいいかも
+    - vec、&str、Stringは管理情報はコピーされるが、データ実体(ヒープ領域上に確保されるデータ)はコピーされない (moveになる)
+        - RustではShallowコピーのような動作をする
+        - C++ (例えば、std::vectorの場合)では、`=` はデータ実体もコピーされる (Deep copy)
 
-## ノート
-- Assemblyコードを出力する方法 (https://stackoverflow.com/questions/39219961/how-to-get-assembly-output-from-building-with-cargo )
+# ノート
+## Assemblyコードを出力する方法
+- https://stackoverflow.com/questions/39219961/how-to-get-assembly-output-from-building-with-cargo
 
 ```powershell
 $env:RUSTFLAGS="--emit asm"
@@ -29,13 +34,11 @@ cargo build --release
 RUSTFLAGS="--emit asm" cargo build --release
 ```
 
-# ポインタの基本操作
-## 変数のポインタ取得
+## ポインタの基本操作
+### 変数のポインタ取得
 - ポインタ型は`*const i32` 、または`*mut i32` 。`&val` から受ける際に型指定しないと参照型になってしまうので要注意
     - `*mut _` や`*const _` で一部省略して受けることは可能
 - 64-bitコンピュータの場合、ポインタ型のサイズは8Byte (64-bit)
-
-![image](images/pointer.png)
 
 
 ```rust:コード
@@ -50,7 +53,9 @@ val = 0x12345678, sizeof(val) = 4
 val_ptr = 0x642f7af528, sizeof(val_ptr) = 8
 ```
 
-## ポインタの操作
+![image](images/pointer.png)
+
+### ポインタの操作
 - ポインタ型経由でメモリにアクセスする場合には `unsafe` ブロック内で行う
 - ポインタの加算は `add` を使う。+1で型のサイズ分アドレスが加算される(例. i32の場合+4)
 
@@ -71,7 +76,7 @@ val = 0x12345678, val_ptr = 0x642f7af580
 val_ptr.add(1) = 0x642f7af584    # 0x642f7af580 + sizeof(i32) = 0x642f7af584
 ```
 
-## ポインタのキャスト
+### ポインタのキャスト
 - `as` でキャストする
 - `*const _` から`*mut _` へのキャストもできた
 
@@ -97,7 +102,7 @@ val_u8_ptr.add(3) = 0x642f7af58b, val = 0x12
 val = 0x12345679, val_ptr = 0x642f7af588, val_u8_ptr = 0x642f7af588
 ```
 
-## 数値からポインタへのキャスト
+### 数値からポインタへのキャスト
 ```rust:コード
 unsafe {
     /* immutable */
@@ -124,6 +129,7 @@ error: process didn't exit successfully: `target\debug\test_memory.exe` (exit co
     - そのため、参照型(`val_ref` )に格納されているアドレスを直接見ることはできない(`val` の値が取れてしまうため)。下記コードではわざわざ参照型変数へのポインタ(`val_ref_ptr` )を `*const usize`に変換して中身を見ている
 
 ![image](images/i32_alloc.png)
+
 
 <details><summary>お試しコードと実行結果</summary><div>
 
@@ -196,11 +202,11 @@ val_ref_ptr = 00000073463BFC50
 </div></details>
 
 
-## i32のMove
+## i32の`=` 
 - `let val_move = val;`
-- i32のmoveはコピーになる
+- i32の`=` はコピーになる
     - `val_move_ptr` と`val_ptr` が異なる
-    - move後も`val` にアクセス可能
+    - `=` 後も`val` にアクセス可能
 
 ![image](images/i32_move.png)
 
@@ -236,7 +242,6 @@ val_move = 0x12345678, val_move_ptr = 0x642f7af538
     - sizeof(`val` ) = データ数 * sizeof(型)
         - 下記のコードだと、5個 x sizeof(i32) = 5 x 4 = 20 Byteになる
     - stack領域が使われるっぽい
-    - C++の配列と同じ
 - `val.as_ptr()` == データが格納されているメモリへのポインタ
     - これは、array変数(`val` ) のポインタ(`val_ptr` )と同じになる
     - `val.as_ptr()` == `val_ptr`
@@ -245,6 +250,7 @@ val_move = 0x12345678, val_move_ptr = 0x642f7af538
     - i32と同じ
 
 ![image](images/array_alloc.png)
+
 
 <details><summary>お試しコードと実行結果</summary><div>
 
@@ -303,13 +309,13 @@ val_ref_ptr = 0x642f7af528, *val_ref_ptr = 0x000000642F7AF510
 </div></details>
 
 
-## arrayのMove
+## arrayの`=` 
 - `let val_move = val;`
-- arrayのmoveはコピーになる
+- arrayの`=` はコピーになる
     - 全要素がコピーされる
-        - サイズが大きいと、moveであってもmemcpy(または複数回のmov命令)が動くのでパフォーマンス注意
+        - サイズが大きいと、memcpy(または複数回のmov命令)が動くのでパフォーマンス注意
     - `val_move_ptr` と`val_ptr` が異なる
-    - move後も`val` にアクセス可能
+    - `=` 後も`val` にアクセス可能
 
 ![image](images/array_move.png)
 
@@ -369,6 +375,7 @@ val_move = [16, 32, 48, 64, 80], val_move_ptr = 0x642f7af540, val_move.as_ptr() 
 
 ![image](images/vec_alloc.png)
 
+
 <details><summary>お試しコードと実行結果</summary><div>
 
 ```rust:コード
@@ -427,14 +434,16 @@ val_ref_ptr = 0x642f7af528, *val_ref_ptr = 0x000000642F7AF510
 </div></details>
 
 
-## vecのMove
+## vecの`=` 
 - `let val_move = val;`
-- vecのmoveは、
+- vecの`=` は、moveになる
     - vec変数の中身はコピーされる (24Byteのデータ: データ実体へのポインタとサイズを格納した管理情報)
     - データの実体はコピーされない
-- move後、`val` にアクセス不可能
+        - c.f. C++のstd::vectorでは、`=` したときにデータの実体もコピーされる
+- `=` 後、`val` にアクセス不可能
 
 ![image](images/vec_move.png)
+
 
 <details><summary>お試しコードと実行結果</summary><div>
 
@@ -508,10 +517,10 @@ val_move_as_ptr.add(4) = 0x1ebb9eaf8e0, val = 0x00000050
 # 文字列 ( '&str' , 'String' )
 - `&str` 、`String` も`vec` と同様に管理情報と文字列実体に分かれる
     - ここでは図だけ示す
-- `vec` と同様に、moveでは管理情報はメモリ上でコピーされるが、文字列実体はコピーされない
+- `vec` と同様に、`=` はmoveとなり、管理情報はメモリ上でコピーされるが、文字列実体はコピーされない
 
 ## &str
-- `let val: &str = "123";` の場合
+- `let val: &str = "ABC";` の場合
     - 変数のサイズは16 Byte
     - 文字列実体のサイズは、文字数(length) x UTF-8でのサイズ
         - 英数字の場合(ASCIIの場合)は1文字当たり1Byte
@@ -519,6 +528,7 @@ val_move_as_ptr.add(4) = 0x1ebb9eaf8e0, val = 0x00000050
     - 文字列実体はテキスト領域を参照しているっぽい
 
 ![image](images/str.png)
+
 
 ## String
 - `let val: String = "ABC".to_string();` の場合
@@ -535,10 +545,10 @@ val_move_as_ptr.add(4) = 0x1ebb9eaf8e0, val = 0x00000050
 - 各メンバのメモリ上での配置順番は宣言順になるとは限らない
 - 配列は、データ実体そのものが構造体の変数内に格納される
 - `String` などは、管理情報(24Byte) が構造体の変数内に格納される
-- moveされた場合、各要素はメモリ上でコピーされる
+- `=` を行った場合、各要素はメモリ上でコピーされる
     - 配列メンバは全データがコピーされる
     - `String` メンバの文字列実体はコピーされない
-    - 構造体そのもののサイズが大きいと、moveであってもmemcpy(または複数回のmov命令)が動くのでパフォーマンス注意
+    - 構造体そのもののサイズが大きいと、memcpy(または複数回のmov命令)が動くのでパフォーマンス注意
 
 ```rust:struct定義
 #[derive(Debug)]
@@ -688,3 +698,4 @@ val_move_u32_ptr.add(15) = 0x642f7af60c, val = 0x00123456
 ```
 
 </div></details>
+
